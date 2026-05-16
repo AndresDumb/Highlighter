@@ -1,0 +1,41 @@
+@HighlighterScannerWebApp_HostAddress = http://localhost:5245
+
+### Register User
+POST {{HighlighterScannerWebApp_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### Login User
+# @name login
+POST {{HighlighterScannerWebApp_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### Get Timeline (Requires Auth)
+@token = {{login.response.body.token}}
+GET {{HighlighterScannerWebApp_HostAddress}}/api/scanner/timeline
+Authorization: Bearer {{token}}
+
+### Add Colour (Requires Auth)
+POST {{HighlighterScannerWebApp_HostAddress}}/api/scanner/colours
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "colourName": "Yellow",
+  "serialNumber": "Y123",
+  "hueMin": 20,
+  "saturationMin": 100,
+  "valueMin": 100,
+  "hueMax": 30,
+  "saturationMax": 255,
+  "valueMax": 255
+}
