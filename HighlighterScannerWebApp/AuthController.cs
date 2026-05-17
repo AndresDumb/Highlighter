@@ -23,18 +23,18 @@ namespace HighlighterScannerWebApp.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] UserDto request)
+        public async Task<IActionResult> Register([FromBody] UserDto req) // changed to req
         {
-            if (await _db.Users.AnyAsync(u => u.email == request.Email))
+// check if user already there
+            if (await _db.Users.AnyAsync(u => u.email == req.Email))
                 return BadRequest("User already exists.");
 
-            var user = new User
-            {
-                email = request.Email,
-                passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
+            var u = new User {
+                email = req.Email,
+                passwordHash = BCrypt.Net.BCrypt.HashPassword(req.Password) // encrypt it!!
             };
 
-            _db.Users.Add(user);
+            _db.Users.Add(u);
             await _db.SaveChangesAsync();
 
             return Ok("User registered successfully.");
@@ -43,30 +43,33 @@ namespace HighlighterScannerWebApp.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserDto request)
         {
+            // find the user...
             var user = await _db.Users.FirstOrDefaultAsync(u => u.email == request.Email);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.passwordHash))
+            
+            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.passwordHash)) {
                 return Unauthorized("Invalid email or password.");
+            }
 
-            var token = CreateToken(user);
-            return Ok(new { token });
+            var t = CreateToken(user);
+            return Ok(new { token = t });
         }
 
-        private string CreateToken(User user)
+        private string CreateToken(User u)
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.id.ToString()),
-                new Claim(ClaimTypes.Email, user.email)
+                new Claim(ClaimTypes.NameIdentifier, u.id.ToString()),
+                new Claim(ClaimTypes.Email, u.email)
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
                 _config.GetSection("AppSettings:Token").Value!));
 
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
 
             var token = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddDays(1),
+                expires: DateTime.Now.AddDays(1), // expires in a day
                 signingCredentials: creds
             );
 

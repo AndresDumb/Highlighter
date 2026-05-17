@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOSS Highlighter Dashboard</title>
+    <!-- hope the styles load... -->
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js"></script>
+</head>
+<body>
+    <div class="card">
+        <!-- auth stuff starts here -->
+        <div id="login-form">
+            <h2>Login</h2>
+            <div class="form-group">
+                <label>Email</label>
+                <input value="test@example.com" type="email" id="loginEmail">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input id="loginPassword" value="password123" type="password">
+            </div>
+            <button onclick="login()">Login</button>
+            <button onclick="toggleAuth(false)">Go to Register</button>
+        </div>
+        
+        <div id="register-form" class="hidden">
+            <h2>Register</h2>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="regEmail">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="regPassword">
+            </div>
+            <button onclick="register()">Register</button>
+            <button onclick="toggleAuth(true)">Go to Login</button>
+        </div>
+
+        <div class="hidden" id="logged-in-info">
+            <p>Logged in as: <span id="user-display"></span></p>
+            <button onclick="logout()">Logout</button>
+        </div>
+        
+        <div id="auth-error" class="hidden" style="color: #ff6b6b; margin-top: 10px; font-weight: bold;"></div>
+    </div>
+
+    <!-- main part of the app -->
+   <main id="main-content" class="hidden">
+       <div>
+            <button onclick="document.getElementById('colour-management-card').classList.toggle('hidden')" style="margin-bottom: 20px;">+ Manage Highlighter Colours</button>
+            
+            <div id="colour-management-card" class="card hidden">
+                <h2>2. Add New Highlighter Colour</h2>
+                <form id="colourForm">
+                    <div class="form-group">
+                        <label>Colour Name</label>
+                        <input id="colourName" required type="text">
+                    </div>
+                
+                    <label>Colour Calibration</label>
+                    <div class="hsv-sliders">
+                        <div class="slider-group">
+                            <label>Hue: <span id="hueVal">60</span></label>
+                            <input min="0" max="360" value="60" type="range" id="hue">
+                        </div>
+                        <div class="slider-group">
+                            <label>Saturation: <span id="saturationVal">100</span>%</label>
+                            <input value="100" min="0" max="100" type="range" id="saturation">
+                        </div>
+                        <div class="slider-group">
+                            <label>Value: <span id="valueVal">100</span>%</label>
+                            <input type="range" id="value" value="100" min="0" max="100">
+                        </div>
+                    </div>
+                    <div class="preview-box" id="colourPreview"></div>
+                    <br>
+                    <button type="submit">Save Colour Profile</button>
+                </form>
+            </div>
+        
+            <div class="card">
+                <h2>3. Scan Page</h2>
+                <form id="uploadForm">
+                    <div class="form-group">
+                        <label>Select Highlighter Colour Profile</label>
+                        <select required id="colourSelect">
+                            <option value="">-- Load colours first --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Upload Page Image</label>
+                        <input type="file" id="imageFile" accept="image/png, image/jpeg, file/pdf" required>
+                    </div>
+                    <button type="submit">Scan & Extract Text</button>
+                </form>
+            </div>
+        
+            <div class="card">
+                <h2>4. Your Timeline</h2>
+                <button type="button" onclick="loadTimeline()" style="margin-bottom: 15px;">Refresh Timeline</button>
+                <div class="timeline" id="timeline-container">
+                    <p>No pages scanned yet.</p>
+                </div>
+            </div>
+       </div>
+   </main>
+</body>
+</html>

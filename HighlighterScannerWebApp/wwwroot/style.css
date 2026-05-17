@@ -1,0 +1,175 @@
+﻿:root{
+    --bg: #284257; /* bg means background */
+    --out: #E87732;
+    --text: #B6D7C6;
+    --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --btn: #76A2C4;
+    --hov: #5AAE6C;
+}
+
+body { 
+    font-family: var(--font);  
+    max-width: 900px; 
+    margin: 0 auto; 
+    padding: 20px; 
+    background-color: var(--bg); 
+    color: var(--text);
+}
+
+.card { 
+    background: transparent; /* same as none i guess */
+    padding: 20px; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+    margin-bottom: 20px; 
+    outline: 2px double var(--out);
+}
+
+/* headers look nice with a border */
+h2 {
+    border-bottom: 2px solid #ccc; 
+    padding-bottom: 10px; 
+    margin-top: 0; 
+}
+
+.form-group { 
+    margin-bottom: 15px; 
+}
+
+label { 
+    display: block; 
+    font-weight: bold; 
+    margin-bottom: 5px; 
+}
+
+input[type="text"], input[type="number"], input[type="email"], input[type="password"], select, input[type="file"] { 
+    width: 100%; 
+    padding: 8px; 
+    border: 1px solid #ccc; 
+    border-radius: 4px; 
+    box-sizing: border-box; 
+}
+
+.hsv-sliders { 
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.slider-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.preview-box {
+    width: 100%;
+    height: 60px;
+    margin-top: 15px;
+    border-radius: 4px;
+    border: 1px solid var(--out);
+    background-color: hsl(60, 100%, 50%);
+}
+
+input[type="range"] {
+    width: 100%;
+    cursor: pointer;
+}
+
+button { 
+    background-color: #76A2C4; 
+    color: white; 
+    border: none; 
+    padding: 10px 15px; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    font-weight: bold; 
+}
+
+/* hover effects!! */
+button:hover { 
+    background-color: var(--hov); 
+}
+
+.timeline { 
+    border-left: 3px solid #007bff; 
+    padding-left: 20px; 
+    margin-left: 10px; 
+}
+
+.timeline-event { 
+    margin-bottom: 25px; 
+    position: relative; 
+    background: #f9f9f9; 
+    padding: 15px; 
+    border-radius: 6px; 
+    border: 1px solid #eee; 
+    color: #333; /* make sure text is readable on light bg */
+}
+
+.scanned-time-colour {
+    color: #666;
+}
+
+.timeline-event::before {
+    content: '';
+    position: absolute; 
+    left: -29px; 
+    top: 15px;
+    width: 15px; 
+    height: 15px; 
+    background: #007bff; 
+    border-radius: 50%;
+}
+
+.timeline-group {
+    margin-bottom: 15px;
+}
+
+.timeline-group-header {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--out);
+    margin-bottom: 5px;
+}
+
+.timeline-group-header:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.toggle-icon {
+    margin-right: 10px;
+    font-size: 0.8em;
+    width: 20px;
+    text-align: center;
+}
+
+.timeline-group-content {
+    margin-top: 10px;
+}
+
+.extracted-text-list { 
+    background: #fff; 
+    border-left: 4px solid #ffeb3b; 
+    padding: 10px; 
+    margin-top: 10px; 
+    font-family: monospace; 
+    color: #000;
+}
+
+.hidden { 
+    display: none !important; /* make sure it's really hidden!! */
+}
+
+/* random stuff below */
+#toggle-colour-form {
+    background-color: var(--btn);
+}
+
+#toggle-colour-form:hover {
+    background-color: var(--hov);
+}

@@ -1,67 +1,70 @@
-using System.ComponentModel.DataAnnotations;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using OpenCvSharp;
-using OpenCvSharp.Extensions;
-using Tesseract;
-using System.Drawing;
 using Microsoft.AspNetCore.HttpOverrides;
 using HighlighterScannerWebApp;
 
+// alright let's get this thing started
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(); // hope we actually use this lol
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+    .AddJwtBearer(opts => // shortened to opts cause why not
     {
-        options.TokenValidationParameters = new TokenValidationParameters
+        opts.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8
                 .GetBytes(builder.Configuration.GetSection("AppSettings:Token").Value!)),
-            ValidateIssuer = false,
+            ValidateIssuer = false, // too lazy to check issuer
             ValidateAudience = false
         };
     });
 
 builder.Services.AddDbContext<ScannerDBContext>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=scanner.db";
-    // Ensure SQLite works on Linux by handling path correctly if needed
-    options.UseSqlite(connectionString);
+    // if the connection string is missing just use the local db
+    var conn = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=scanner.db";
+    options.UseSqlite(conn);
 });
 builder.Services.AddScoped<ScannerService>();
 builder.Services.AddControllers();
 
-builder.Services.Configure<ForwardedHeadersOptions>(options =>
-{
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+builder.Services.Configure<ForwardedHeadersOptions>(o => {
+    o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
 });
 
 var app = builder.Build();
 
+// make sure the database actually exists... 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ScannerDBContext>();
+    db.Database.EnsureCreated();
+}
+
 app.UseForwardedHeaders();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-// Note: HttpsRedirection is often handled by Nginx on Hostinger VPS.
-// If you have SSL configured in Nginx, you can leave this out or enable it if Nginx doesn't redirect.
-// app.UseHttpsRedirection();
+
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+app.Run(); // and we're live!!
 
 namespace HighlighterScannerWebApp
 {
+    // some data classes... probably should be in their own files but oh well
     public class User
     {
         public int id { get; set; }
@@ -73,15 +76,10 @@ namespace HighlighterScannerWebApp
     {
         public int id { get; set; }
         public string colourName { get; set; } = string.Empty;
-        public string serialNumber { get; set; } = string.Empty;
-
-        //HSV Colour
-        public int hueMin { get; set; }
-        public int saturationMin { get; set; }
-        public int valueMin { get; set; }
-        public int hueMax { get; set; }
-        public int saturationMax { get; set; }
-        public int valueMax { get; set; }
+        public int hue { get; set; }
+        public int saturation { get; set; }
+        public int value { get; set; }
+        public string addedBy { get; set; } = string.Empty;
     }
 
     public class ScannedPageLog
@@ -114,15 +112,12 @@ namespace HighlighterScannerWebApp
         public DbSet<ScannedPageLog> ScannedPageLogs { get; set; }
         public DbSet<ExtractedLine> ExtractedLines { get; set; }
     }
-    
-    
 }
 
 
 
 
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+
 
 

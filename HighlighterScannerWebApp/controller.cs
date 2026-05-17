@@ -4,8 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
-
-
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -13,91 +11,88 @@ public class ScannerController : ControllerBase
 {
     private readonly ScannerDBContext _db;
     private readonly ScannerService _scannerService;
-
-    public ScannerController(ScannerDBContext db, ScannerService scannerService)
+    
+    public ScannerController(ScannerDBContext db, ScannerService s) // s for service
     {
         _db = db;
-        _scannerService = scannerService;
+        _scannerService = s;
     }
 
-    public string GetCurrentUser()
+    private string GetMe() // renamed from GetCurrentUser
     {
-        return User.FindFirstValue(ClaimTypes.NameIdentifier)
-               ?? throw new UnauthorizedAccessException("User not authenticated");
+        var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (id == null) throw new UnauthorizedAccessException("oops not logged in");
+        return id;
     }
 
-    // 1. Save a new highlighter color profile
     [HttpPost("colours")]
-    public async Task<IActionResult> AddColour([FromBody] HighlighterColour colour)
+    public async Task<IActionResult> AddColour([FromBody] HighlighterColour c)
     {
-        _db.HighlighterColours.Add(colour);
+        c.addedBy = GetMe();
+        _db.HighlighterColours.Add(c);
         await _db.SaveChangesAsync();
-        return Ok(colour);
+        return Ok(c);
     }
 
-    // 2. Upload an image, scan it, and log it to the timeline
-    [HttpPost("scan/{colorId}")]
-    public async Task<IActionResult> UploadAndScan(int colorId, IFormFile file)
+    [HttpGet("colours")]
+    public async Task<IActionResult> GetColours()
     {
-        var currentUserId = GetCurrentUser();
-        var colour = await _db.HighlighterColours.FindAsync(colorId);
-        if (colour == null) return NotFound("Colour profile not found.");
+        var me = GetMe();
+        var cols = await _db.HighlighterColours.Where(x => x.addedBy == me).ToListAsync();
+        return Ok(cols);
+    }
 
-        // Save file temporarily
-        var filePath = Path.GetTempFileName();
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
+    [HttpPost("scan/{colourId}")]
+    public async Task<IActionResult> UploadAndScan(int colourId, IFormFile file)
+    {
+        var me = GetMe();
+        var col = await _db.HighlighterColours.FindAsync(colourId);
+        
+        if (col == null || col.addedBy != me) {
+            return NotFound("that colour doesn't exist for you buddy");
         }
 
-        // Process Image
-        var extractedLines = _scannerService.ExtractHighlightedText(filePath, colour);
-        
-        var userPageCount = await _db.ScannedPageLogs.Where(p => p.scannedBy == GetCurrentUser()).CountAsync();
+        // temp file... hope it deletes
+        var path = Path.GetTempFileName();
+        using (var s = new FileStream(path, FileMode.Create)) { 
+            await file.CopyToAsync(s); 
+        }
 
-        // Create log entry for timeline
-        var pageLog = new ScannedPageLog
-        {
-            scannedTime = DateTime.UtcNow,
-            fileName = file.FileName,
-            pageNumber = userPageCount + 1,
-            scannedBy = currentUserId// Simple page tracking
+        var lines = _scannerService.ExtractHighlightedText(path, col);
+        
+        // count how many pages they have
+        var count = await _db.ScannedPageLogs.Where(p => p.scannedBy == me).CountAsync();
+        
+        var log = new ScannedPageLog { 
+            scannedTime = DateTime.UtcNow, 
+            fileName = file.FileName, 
+            pageNumber = count + 1, 
+            scannedBy = me 
         };
 
-        foreach (var text in extractedLines)
-        {
-            pageLog.ExtractedLines.Add(new ExtractedLine
-            {
-                lineText = text,
-                colourId = colour.id
-            });
+        foreach (var t in lines) { 
+            log.ExtractedLines.Add(new ExtractedLine { lineText = t, colourId = col.id }); 
         }
 
-        _db.ScannedPageLogs.Add(pageLog);
+        _db.ScannedPageLogs.Add(log);
         await _db.SaveChangesAsync();
-
-        System.IO.File.Delete(filePath); // Cleanup
-
-        return Ok(pageLog);
+        
+        // cleanup!!
+        System.IO.File.Delete(path); 
+        
+        return Ok(log);
     }
 
-    // 3. Get Timeline Data
     [HttpGet("timeline")]
     public async Task<IActionResult> GetTimeline()
     {
-        var currentUserId = GetCurrentUser();
-        var timeline = await _db.ScannedPageLogs
-            .Where(p => p.scannedBy == currentUserId)
+        var me = GetMe();
+        var list = await _db.ScannedPageLogs
+            .Where(p => p.scannedBy == me)
             .Include(p => p.ExtractedLines)
-            .OrderByDescending(p => p.scannedTime) // Order by newest for timeline
+            .OrderByDescending(p => p.scannedTime)
             .ToListAsync();
-
-        return Ok(new
-        {
-            TotalPagesLogged = timeline.Count,
-            TimelineEvents = timeline
-        });
+            
+        return Ok(new { TotalPagesLogged = list.Count, TimelineEvents = list });
     }
-    
-    
 }
