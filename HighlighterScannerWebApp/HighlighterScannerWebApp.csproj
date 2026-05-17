@@ -1,18 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0-*" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.8" />
-        <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260427" />
-        <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260302" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />
+        <PackageReference Include="OpenCvSharp4" Version="4.10.0.*" />
+        <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.10.0.*" />
         <PackageReference Include="Tesseract" Version="5.2.0" />
         <PackageReference Include="Tesseract.Data.English" Version="4.0.0" />
     </ItemGroup>

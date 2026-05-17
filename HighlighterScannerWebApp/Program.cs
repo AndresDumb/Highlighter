@@ -7,7 +7,7 @@ using HighlighterScannerWebApp;
 
 // alright let's get this thing started
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddOpenApi(); // hope we actually use this lol
+// removed openapi cause we're downgrading to 8.0 lol
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opts => // shortened to opts cause why not
@@ -33,6 +33,9 @@ builder.Services.AddControllers();
 
 builder.Services.Configure<ForwardedHeadersOptions>(o => {
     o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // clear these so nginx actually works on a vps...
+    o.KnownNetworks.Clear();
+    o.KnownProxies.Clear();
 });
 
 var app = builder.Build();
@@ -46,10 +49,7 @@ using (var scope = app.Services.CreateScope())
 
 app.UseForwardedHeaders();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+// no more mapopenapi here... bye bye
 
 
 app.UseDefaultFiles();
